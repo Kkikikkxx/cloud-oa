@@ -9,5 +9,4 @@ import org.springframework.stereotype.Repository;
 @Mapper
 public interface SysRoleMapper extends BaseMapper<SysRole> {
 
-
 }
