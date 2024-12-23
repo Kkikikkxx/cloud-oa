@@ -1,4 +1,4 @@
-package com.kkyu.com.kkyu.common.config.mybatisplus;
+package com.kkyu.config.mybatisplus;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;

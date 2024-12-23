@@ -37,6 +37,13 @@ public class SysRoleController {
     public Result<List<SysRole>> findAll() {
         List<SysRole> list = sysRoleService.list();
 
+        /*// 模拟异常
+        try {
+            int i = 10/0;
+        } catch (Exception e){
+            throw new DiyException(20001, "自定义异常");
+        }*/
+
         return Result.successData(list);
     }
 
