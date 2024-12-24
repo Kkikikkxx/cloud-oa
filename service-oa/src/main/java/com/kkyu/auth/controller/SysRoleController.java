@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kkyu.auth.service.SysRoleService;
 import com.kkyu.common.result.Result;
 import com.kkyu.model.system.SysRole;
+import com.kkyu.vo.system.AssginRoleVo;
 import com.kkyu.vo.system.SysRoleQueryVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 角色管理接口
@@ -26,6 +28,30 @@ public class SysRoleController {
     @Autowired
     public SysRoleController(SysRoleService sysRoleService) {
         this.sysRoleService = sysRoleService;
+    }
+
+    /**
+     * 根据用户ID查询角色
+     *
+     * @param userId 用户ID
+     * @return 角色列表
+     */
+    @GetMapping("/toAssign/{userId}")
+    public Result<Map<String, Object>> toAssign(@PathVariable Long userId) {
+        Map<String, Object> roleMap = sysRoleService.findRoleByAdminId(userId);
+        return Result.successData(roleMap);
+    }
+
+    /**
+     * 分配角色
+     *
+     * @param assginRoleVo 分配角色的请求参数
+     * @return 分配角色的结果
+     */
+    @PostMapping("/doAssign")
+    public Result<String> doAssign(@RequestBody AssginRoleVo assginRoleVo) {
+        sysRoleService.doAssign(assginRoleVo);
+        return Result.successMsg("分配角色成功");
     }
 
     /**
