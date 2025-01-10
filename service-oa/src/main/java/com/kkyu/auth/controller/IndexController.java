@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * IndexController
+ * LoginController
  * 该控制器用于处理与系统管理后台相关的登录、用户信息以及登出操作。
  *
  */
