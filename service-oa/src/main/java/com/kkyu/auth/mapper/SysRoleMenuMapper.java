@@ -2,6 +2,7 @@ package com.kkyu.auth.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.kkyu.model.system.SysRoleMenu;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
@@ -11,6 +12,7 @@ import com.kkyu.model.system.SysRoleMenu;
  * @author kkyu
  * @since 2025-01-10
  */
+@Mapper
 public interface SysRoleMenuMapper extends BaseMapper<SysRoleMenu> {
 
 }

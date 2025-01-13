@@ -2,9 +2,9 @@ package com.kkyu.auth.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.kkyu.model.system.SysRole;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
 
-@Repository
+@Mapper
 public interface SysRoleMapper extends BaseMapper<SysRole> {
 
 }
