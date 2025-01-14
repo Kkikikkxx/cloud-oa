@@ -41,15 +41,28 @@ public class IndexController {
      * @param loginVo 登录请求对象
      * @return Result<Map < String, Object>> 返回一个包含登录凭证 (token) 的 Map
      */
-    @PostMapping("/login")
-    public Result<Map<String, Object>> login(@RequestBody LoginVo loginVo) {
-        SysUser sysUser = validateUser(loginVo);
+    @PostMapping("login")
+    public Result<Map<String,Object>> login(@RequestBody LoginVo loginVo) {
+        String username = loginVo.getUsername();
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUser::getUsername, username);
+        SysUser sysUser = sysUserService.getOne(wrapper);
+        if (null == sysUser) {
+            throw new DiyException(201, "用户不存在");
+        }
+        String password_db = sysUser.getPassword();
+        String password_input = MD5.encrypt(loginVo.getPassword());
+        if (!password_db.equals(password_input)) {
+            throw new DiyException(201, "密码错误");
+        }
+        if (sysUser.getStatus() == 0) {
+            throw new DiyException(201, "用户被禁用");
+        }
 
-        // 生成并返回JWT Token
         String token = JwtHelper.createToken(sysUser.getId(), sysUser.getUsername());
-        Map<String, Object> resultData = new HashMap<>();
-        resultData.put("token", token);
-        return Result.successData(resultData);
+        Map<String, Object> map = new HashMap<>();
+        map.put("token", token);
+        return Result.successData(map);
     }
 
     /**
@@ -62,73 +75,13 @@ public class IndexController {
     public Result<Map<String, Object>> info(HttpServletRequest request) {
         // 从请求头中获取Token
         String token = request.getHeader("token");
-        if (token == null || token.isEmpty()) {
-            return Result.error("Token 不存在或无效");
-        }
 
         // 解析 Token 获取用户 ID
         Long userId = JwtHelper.getUserId(token);
-        if (userId == null) {
-            return Result.error("Token 解析失败，请重新登录");
-        }
 
         // 获取用户信息
         SysUser sysUser = sysUserService.getById(userId);
-        if (sysUser == null) {
-            return Result.error("用户不存在");
-        }
 
-        // 封装用户信息
-        Map<String, Object> userInfo = buildUserInfo(sysUser, userId);
-        return Result.successData(userInfo);
-    }
-
-    /**
-     * 用户退出登录接口
-     *
-     * @return Result<String> 返回退出成功的消息
-     */
-    @PostMapping("/logout")
-    public Result<String> logout() {
-        return Result.successMsg("退出登录成功");
-    }
-
-    // 方法封装
-
-    /**
-     * 校验用户登录信息
-     *
-     * @param loginVo 登录请求对象
-     * @return SysUser 验证通过的用户对象
-     */
-    private SysUser validateUser(LoginVo loginVo) {
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysUser::getUsername, loginVo.getUsername());
-        SysUser sysUser = sysUserService.getOne(wrapper);
-
-        if (sysUser == null) {
-            throw new DiyException(201, "用户名不存在");
-        }
-
-        if (!MD5.encrypt(loginVo.getPassword()).equals(sysUser.getPassword())) {
-            throw new DiyException(201, "密码错误");
-        }
-
-        if (sysUser.getStatus() == 0) {
-            throw new DiyException(201, "用户已禁用");
-        }
-
-        return sysUser;
-    }
-
-    /**
-     * 构建用户信息数据
-     *
-     * @param sysUser 用户实体
-     * @param userId  用户ID
-     * @return Map<String, Object> 用户信息数据
-     */
-    private Map<String, Object> buildUserInfo(SysUser sysUser, Long userId) {
         // 获取用户菜单与权限
         List<RouterVo> routerList = sysMenuService.findUserMenuListByUserId(userId);
         List<String> permsList = sysMenuService.findUserPermsByUserId(userId);
@@ -140,7 +93,18 @@ public class IndexController {
         userInfo.put("avatar", "https://oss.aliyuncs.com/aliyun_id_photo_bucket/default_handsome.jpg");
         userInfo.put("routers", routerList);
         userInfo.put("perms", permsList);
-        return userInfo;
+
+        return Result.successData(userInfo);
+    }
+
+    /**
+     * 用户退出登录接口
+     *
+     * @return Result<String> 返回退出成功的消息
+     */
+    @PostMapping("/logout")
+    public Result<String> logout() {
+        return Result.successMsg("退出登录成功");
     }
 
 }

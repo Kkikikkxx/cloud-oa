@@ -18,7 +18,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -147,9 +146,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
      */
     @Override
     public List<RouterVo> findUserMenuListByUserId(Long userId) {
-        List<SysMenu> sysMenuList = null;
+        List<SysMenu> sysMenuList;
         // 判断用户是否是管理员 userId = 1
-        if (userId.longValue() == 1) {
+        if (userId == 1) {
             LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(SysMenu::getStatus, 1);
             wrapper.orderByAsc(SysMenu::getSortValue);
@@ -159,9 +158,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
         }
 
         List<SysMenu> sysMenuTreeList = MenuHelper.buildTree(sysMenuList);
-        List<RouterVo> routerVoList = this.buildRouter(sysMenuTreeList);
 
-        return routerVoList;
+        return this.buildRouter(sysMenuTreeList);
     }
 
     private List<RouterVo> buildRouter(List<SysMenu> menuRouter) {
@@ -174,7 +172,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             routerVo.setComponent(sysMenu.getComponent());
             routerVo.setMeta(new MetaVo(sysMenu.getName(), sysMenu.getIcon()));
             List<SysMenu> children = sysMenu.getChildren();
-            if (sysMenu.getType().intValue() == 1) {
+            if (sysMenu.getType() == 1) {
                 List<SysMenu> hiddenMenuList = children.stream().filter(item -> !StringUtils.isEmpty(item.getComponent()))
                         .collect(Collectors.toList());
                 for (SysMenu hiddenMenu : hiddenMenuList) {
@@ -188,9 +186,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
                 }
             } else {
                 if (!CollectionUtils.isEmpty(children)) {
-                    if (children.size() > 0) {
-                        routerVo.setAlwaysShow(true);
-                    }
+                    routerVo.setAlwaysShow(true);
                     routerVo.setChildren(buildRouter(children));
                 }
             }
@@ -208,20 +204,19 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
     @Override
     public List<String> findUserPermsByUserId(Long userId) {
         //超级管理员admin账号id为：1
-        List<SysMenu> sysMenuList = null;
+        List<SysMenu> sysMenuList;
         // 判断用户是否是管理员 userId = 1
-        if (userId.longValue() == 1) {
+        if (userId == 1) {
             LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(SysMenu::getStatus, 1);
             sysMenuList = baseMapper.selectList(wrapper);
         } else {
             sysMenuList = baseMapper.findMenuListByUserId(userId);
         }
-        List<String> permsList = sysMenuList.stream()
-                .filter(item -> item.getType().intValue() == 2)
-                .map(item -> item.getPerms())
+        return sysMenuList.stream()
+                .filter(item -> item.getType() == 2)
+                .map(SysMenu::getPerms)
                 .collect(Collectors.toList());
-        return permsList;
     }
 
     /**
