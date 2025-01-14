@@ -3,6 +3,9 @@ package com.kkyu.auth.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.kkyu.model.system.SysMenu;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -15,4 +18,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface SysMenuMapper extends BaseMapper<SysMenu> {
 
+    List<SysMenu> findMenuListByUserId(@Param("userId") Long userId);
 }

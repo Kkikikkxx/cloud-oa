@@ -51,7 +51,7 @@ public class TestMpDemo1 {
         //根据id查询
         SysRole role = sysRoleMapper.selectById(10);
         //设置修改值
-        role.setRoleName("atguigu角色管理员");
+        role.setRoleName("角色管理员");
         //调用方法实现最终修改
         int rows = sysRoleMapper.updateById(role);
         System.out.println(rows);

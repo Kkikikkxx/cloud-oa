@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kkyu.auth.service.SysUserService;
 import com.kkyu.common.result.Result;
+import com.kkyu.common.utils.MD5;
 import com.kkyu.model.system.SysUser;
 import com.kkyu.vo.system.SysUserQueryVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class SysUserController {
 
     // 用户服务接口
-    private final SysUserService userService;
+    private final SysUserService sysUserService;
 
     /**
      * 构造函数注入用户服务类
@@ -28,7 +29,7 @@ public class SysUserController {
      */
     @Autowired
     public SysUserController(SysUserService userService) {
-        this.userService = userService;
+        this.sysUserService = userService;
     }
 
     /**
@@ -68,7 +69,7 @@ public class SysUserController {
         }
 
         // 执行分页查询
-        Page<SysUser> userPage = userService.page(pageParam, wrapper);
+        Page<SysUser> userPage = sysUserService.page(pageParam, wrapper);
 
         // 返回查询结果
         return Result.successData(userPage);
@@ -82,7 +83,7 @@ public class SysUserController {
      */
     @GetMapping("get/{id}")
     public Result<SysUser> get(@PathVariable Long id) {
-        SysUser user = userService.getById(id);
+        SysUser user = sysUserService.getById(id);
         return Result.successData(user);
     }
 
@@ -94,7 +95,10 @@ public class SysUserController {
      */
     @PostMapping("save")
     public Result<String> save(@RequestBody SysUser user) {
-        userService.save(user);
+        // 加密密码
+        String password = user.getPassword();
+        user.setPassword(MD5.encrypt(password));
+        sysUserService.save(user);
         return Result.successMsg("新增用户成功");
     }
 
@@ -106,7 +110,7 @@ public class SysUserController {
      */
     @PutMapping("update")
     public Result<String> updateById(@RequestBody SysUser user) {
-        userService.updateById(user);
+        sysUserService.updateById(user);
         return Result.successMsg("修改用户成功");
     }
 
@@ -118,20 +122,20 @@ public class SysUserController {
      */
     @DeleteMapping("remove/{id}")
     public Result<String> remove(@PathVariable Long id) {
-        userService.removeById(id);
+        sysUserService.removeById(id);
         return Result.successMsg("删除用户成功");
     }
 
     /**
      * 更新用户状态
      *
-     * @param id 用户ID
+     * @param id     用户ID
      * @param status 用户状态（1：启用，0：禁用）
      * @return 返回状态更新结果
      */
     @GetMapping("updateStatus/{id}/{status}")
     public Result<String> updateStatus(@PathVariable Long id, @PathVariable Integer status) {
-        userService.updateStatus(id, status);
+        sysUserService.updateStatus(id, status);
         return Result.successMsg("修改用户状态成功");
     }
 

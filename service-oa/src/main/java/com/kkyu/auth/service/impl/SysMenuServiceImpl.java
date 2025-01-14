@@ -9,17 +9,22 @@ import com.kkyu.config.exception.DiyException;
 import com.kkyu.model.system.SysMenu;
 import com.kkyu.model.system.SysRoleMenu;
 import com.kkyu.vo.system.AssginMenuVo;
+import com.kkyu.vo.system.MetaVo;
+import com.kkyu.vo.system.RouterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.kkyu.auth.utils.MenuHelper;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @class SysMenuServiceImpl
- * @description 系统菜单服务实现类，提供了菜单的增删改查以及角色分配相关的业务逻辑
+ * {@code @class} SysMenuServiceImpl
+ * {@code @description} 系统菜单服务实现类，提供了菜单的增删改查以及角色分配相关的业务逻辑
  */
 @Service
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> implements SysMenuService {
@@ -132,5 +137,104 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             // 保存角色与菜单的关联关系
             sysRoleMenuService.save(sysRoleMenu);
         }
+    }
+
+    /**
+     * 根据用户ID获取菜单路由列表数据
+     *
+     * @param userId 用户ID
+     * @return 返回用户对应的菜单路由列表数据
+     */
+    @Override
+    public List<RouterVo> findUserMenuListByUserId(Long userId) {
+        List<SysMenu> sysMenuList = null;
+        // 判断用户是否是管理员 userId = 1
+        if (userId.longValue() == 1) {
+            LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SysMenu::getStatus, 1);
+            wrapper.orderByAsc(SysMenu::getSortValue);
+            sysMenuList = baseMapper.selectList(wrapper);
+        } else {
+            sysMenuList = baseMapper.findMenuListByUserId(userId);
+        }
+
+        List<SysMenu> sysMenuTreeList = MenuHelper.buildTree(sysMenuList);
+        List<RouterVo> routerVoList = this.buildRouter(sysMenuTreeList);
+
+        return routerVoList;
+    }
+
+    private List<RouterVo> buildRouter(List<SysMenu> menuRouter) {
+        List<RouterVo> routerVoList = new ArrayList<>();
+        for (SysMenu sysMenu : menuRouter) {
+            RouterVo routerVo = new RouterVo();
+            routerVo.setHidden(false);
+            routerVo.setAlwaysShow(false);
+            routerVo.setPath(getRouterPath(sysMenu));
+            routerVo.setComponent(sysMenu.getComponent());
+            routerVo.setMeta(new MetaVo(sysMenu.getName(), sysMenu.getIcon()));
+            List<SysMenu> children = sysMenu.getChildren();
+            if (sysMenu.getType().intValue() == 1) {
+                List<SysMenu> hiddenMenuList = children.stream().filter(item -> !StringUtils.isEmpty(item.getComponent()))
+                        .collect(Collectors.toList());
+                for (SysMenu hiddenMenu : hiddenMenuList) {
+                    RouterVo hiddenRouter = new RouterVo();
+                    hiddenRouter.setHidden(true);
+                    hiddenRouter.setAlwaysShow(false);
+                    hiddenRouter.setPath(getRouterPath(hiddenMenu));
+                    hiddenRouter.setComponent(hiddenMenu.getComponent());
+                    hiddenRouter.setMeta(new MetaVo(hiddenMenu.getName(), hiddenMenu.getIcon()));
+                    routerVoList.add(hiddenRouter);
+                }
+            } else {
+                if (!CollectionUtils.isEmpty(children)) {
+                    if (children.size() > 0) {
+                        routerVo.setAlwaysShow(true);
+                    }
+                    routerVo.setChildren(buildRouter(children));
+                }
+            }
+            routerVoList.add(routerVo);
+        }
+        return routerVoList;
+    }
+
+    /**
+     * 根据用户id查询用户可以操作的按钮权限
+     *
+     * @param userId 用户id
+     * @return 权限列表
+     */
+    @Override
+    public List<String> findUserPermsByUserId(Long userId) {
+        //超级管理员admin账号id为：1
+        List<SysMenu> sysMenuList = null;
+        // 判断用户是否是管理员 userId = 1
+        if (userId.longValue() == 1) {
+            LambdaQueryWrapper<SysMenu> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SysMenu::getStatus, 1);
+            sysMenuList = baseMapper.selectList(wrapper);
+        } else {
+            sysMenuList = baseMapper.findMenuListByUserId(userId);
+        }
+        List<String> permsList = sysMenuList.stream()
+                .filter(item -> item.getType().intValue() == 2)
+                .map(item -> item.getPerms())
+                .collect(Collectors.toList());
+        return permsList;
+    }
+
+    /**
+     * 获取路由地址
+     *
+     * @param menu 菜单信息
+     * @return 路由地址
+     */
+    public String getRouterPath(SysMenu menu) {
+        String routerPath = "/" + menu.getPath();
+        if (menu.getParentId().intValue() != 0) {
+            routerPath = menu.getPath();
+        }
+        return routerPath;
     }
 }

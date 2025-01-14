@@ -3,6 +3,7 @@ package com.kkyu.auth.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.kkyu.model.system.SysMenu;
 import com.kkyu.vo.system.AssginMenuVo;
+import com.kkyu.vo.system.RouterVo;
 
 import java.util.List;
 
@@ -41,4 +42,19 @@ public interface SysMenuService extends IService<SysMenu> {
      * @param assginRoleVo 分配角色菜单的参数对象，包含角色ID和菜单ID列表
      */
     void doAssign(AssginMenuVo assginRoleVo);
+
+    /**
+     * 根据用户ID获取菜单路由列表数据
+     *
+     * @param userId 用户ID
+     * @return 返回用户对应的菜单路由列表数据
+     */
+    List<RouterVo> findUserMenuListByUserId(Long userId);
+
+    /**
+     * 根据用户id查询权限
+     * @param userId 用户id
+     * @return 权限列表
+     */
+    List<String> findUserPermsByUserId(Long userId);
 }
