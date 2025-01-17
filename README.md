@@ -8,13 +8,9 @@
 
 员工端采用微信公众号操作，包含：办公审批、微信授权登录、消息推送等功能
 
-
-
 项目服务器端架构：SpringBoot + MyBatisPlus + SpringSecurity + Redis + Activiti+ MySQL
 
-前端架构：vue-admin-template + Node.js + Npm + Vue + ElementUI + Axios
-
-
+前端架构：vue-admin-template + Npm + Vue + ElementUI + Axios
 
 ### 2、核心技术
 
@@ -25,10 +21,6 @@
 | 权限控制  | SpringSecurity                                               |
 | 工作流引擎 | Activiti                                                     |
 | 前端技术  | vue-admin-template + Node.js + Npm + Vue + ElementUI + Axios |
-| 微信公众号 | 公众号菜单 + 微信授权登录 + 消息推送                                        |
-
-
-
 
 ### 3、项目模块
 
